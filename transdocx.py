@@ -1,4 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+# coding:utf-8
+# Author: veelion
+
 
 
 from PyQt5.QtCore import QThread, QSize
