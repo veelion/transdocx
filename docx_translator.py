@@ -37,6 +37,19 @@ def translate_buff(buff_para, buff_text, src, dest):
         para.text += '\n' + tr[i]
 
 
+def translate(fn, src, dest):
+    post = fn.split('.')[-1].lower()
+    if post == 'docx':
+        translate_docx(fn, src, dest)
+    elif post == 'pdf':
+        translate_pdf(nf, src, dest)
+    else:
+        msg = '不支持的文档格式: {}'.format(post)
+        print(msg)
+        if g_log:
+            g_log.show.emit(msg)
+
+
 def translate_docx(fn, src, dest):
     doc = Document(fn)
     buff_para = []
@@ -70,6 +83,10 @@ def translate_docx(fn, src, dest):
     to_save = os.path.join(n_dir, 'fanyi-'+n_file)
     doc.save(to_save)
     return to_save
+
+
+def translate_pdf(fn, src, dest):
+    pass
 
 
 if __name__ == '__main__':
