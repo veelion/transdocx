@@ -11,6 +11,7 @@ from PyQt5.QtGui import QIcon
 import googletrans
 
 import docx_translator as docxtr
+from pdf2text import resource_path
 
 
 class LogHandler(QtCore.QObject):
@@ -27,7 +28,7 @@ class TranslateTask(QThread):
         self.fn = fn
 
     def run(self):
-        to_save = docxtr.translate_docx(self.fn, self.src, self.dst)
+        to_save = docxtr.translate(self.fn, self.src, self.dst)
         msg = '翻译成功，保存为：<b>{}</b>'.format(to_save)
         self.done.emit(msg)
 
@@ -81,11 +82,12 @@ class Window(QtWidgets.QDialog):
         self.setLayout(mainLayout)
 
         app_icon = QIcon()#icon = https://imgur.com/NV7Ugfd
-        app_icon.addFile('icon.png', QSize(16, 16))
-        app_icon.addFile('icon.png', QSize(24, 24))
-        app_icon.addFile('icon.png', QSize(32, 32))
-        app_icon.addFile('icon.png', QSize(48, 48))
-        app_icon.addFile('icon.png', QSize(256, 256))
+        icon_path = resource_path('icon.png')
+        app_icon.addFile(icon_path, QSize(16, 16))
+        app_icon.addFile(icon_path, QSize(24, 24))
+        app_icon.addFile(icon_path, QSize(32, 32))
+        app_icon.addFile(icon_path, QSize(48, 48))
+        app_icon.addFile(icon_path, QSize(256, 256))
         self.setWindowIcon(app_icon)
 
         self.setWindowTitle("文档翻译")
@@ -106,12 +108,14 @@ class Window(QtWidgets.QDialog):
         sfile, _ = QtWidgets.QFileDialog.getOpenFileName(
             self, "选择文件",
             QtCore.QDir.currentPath(),
-            "Docx(*.docx)",
+            "Docx, PDF(*.docx *.pdf *.PDF)",
         )
         print(sfile)
 
         if sfile:
             self.logPlainText.clear()
+            msg = '选择了文件: <b>{}</b>'.format(sfile)
+            self.logger.show.emit(msg)
             if self.fileComboBox.findText(sfile) == -1:
                 self.fileComboBox.addItem(sfile)
 

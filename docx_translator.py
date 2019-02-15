@@ -8,6 +8,8 @@ import traceback
 from docx import Document
 from googletrans import Translator
 
+from pdf2text import pdf_to_docx
+
 
 g_log = None
 
@@ -17,7 +19,7 @@ g_trans = Translator(service_urls=[
 
 
 def translate_buff(buff_para, buff_text, src, dest):
-    joiner = '|||'
+    joiner = '\n'
     tt = joiner.join(buff_text)
     msg = '\t正在翻译：共有 {} 个字'.format(len(tt))
     print(msg)
@@ -32,22 +34,12 @@ def translate_buff(buff_para, buff_text, src, dest):
         if g_log:
             g_log.show.emit(msg)
         return
+    print(tr.text)
     tr = tr.text.split(joiner)
-    for i, para in enumerate(buff_para):
-        para.text += '\n' + tr[i]
-
-
-def translate(fn, src, dest):
-    post = fn.split('.')[-1].lower()
-    if post == 'docx':
-        translate_docx(fn, src, dest)
-    elif post == 'pdf':
-        translate_pdf(nf, src, dest)
-    else:
-        msg = '不支持的文档格式: {}'.format(post)
-        print(msg)
-        if g_log:
-            g_log.show.emit(msg)
+    print(f'buff_para:{len(buff_para)}, buff_text:{len(buff_text)}, translated para:{len(tr)}')
+    for i, t in enumerate(tr):
+        para = buff_para[i]
+        para.text += '\n' + t
 
 
 def translate_docx(fn, src, dest):
@@ -57,7 +49,7 @@ def translate_docx(fn, src, dest):
     buff_len = 0
     max_len = 4900
     for para in doc.paragraphs:
-        text = para.text.strip()
+        text = para.text.replace('\n', '').strip()
         if not text: continue
         text_len = len(text.encode('utf8'))
         if buff_len + text_len < max_len:
@@ -86,7 +78,20 @@ def translate_docx(fn, src, dest):
 
 
 def translate_pdf(fn, src, dest):
-    pass
+    fn_docx = pdf_to_docx(fn)
+    return translate_docx(fn_docx, src, dest)
+
+
+def translate(fn, src, dest):
+    post = fn.split('.')[-1].lower()
+    if post == 'docx':
+        return translate_docx(fn, src, dest)
+    if post == 'pdf':
+        return translate_pdf(fn, src, dest)
+    msg = '不支持的文档格式: {}'.format(post)
+    print(msg)
+    if g_log:
+        g_log.show.emit(msg)
 
 
 if __name__ == '__main__':
